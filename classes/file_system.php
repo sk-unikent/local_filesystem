@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_filesystem\manager;
+namespace local_filesystem;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -77,6 +77,15 @@ class file_system extends \file_system_filedir {
                 file_put_contents("{$this->filedir}/config.db", serialize($config));
             }
         }
+    }
+
+    /**
+     * Grab a list of connected systems.
+     *
+     * @return array List of systems
+     */
+    public function get_connected_systems() {
+        return $this->connectedsystems;
     }
 
     /**
@@ -169,10 +178,17 @@ class file_system extends \file_system_filedir {
      *
      * @return bool
      */
-    protected function is_file_removable($contenthash) {
+    protected static function is_file_removable($contenthash) {
         global $CFG;
 
-        foreach ($this->connectedsystems as $system) {
+        $fs = get_file_storage();
+        $filesystem = $fs->get_file_system();
+
+        if (empty($filesystem->connectedsystems)) {
+            return parent::is_file_removable($contenthash);
+        }
+
+        foreach ($filesystem->connectedsystems as $system) {
             $db = \local_kent\helpers::get_db($CFG->kent->environment, $system);
             if (!$db) {
                 throw new file_exception("Invalid connected_file_systems config: {$system} is not a valid MIM system.");
