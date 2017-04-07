@@ -34,7 +34,17 @@ class tidy extends \core\task\scheduled_task
     }
 
     public function execute() {
-        // TODO.
+        $fs = get_file_storage();
+        $filesystem = $fs->get_file_system();
+
+        // TODO - bulk this up a bit.
+
+        foreach ($filesystem->traverse_directory($from) as $file) {
+            [$fullpath, $contenthash] = $file;
+
+            // Check this file is needed.
+            $filesystem->execute_task_trash($contenthash);
+        }
         return true;
     }
 }
