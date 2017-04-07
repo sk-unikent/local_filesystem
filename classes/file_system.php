@@ -80,6 +80,45 @@ class file_system extends \file_system_filedir {
     }
 
     /**
+     * Get the old directory to the stored file, including the path to the
+     * filedir, and the directory which the file is actually in.
+     *
+     * @param string $contenthash The content hash
+     * @return string The full path to the content directory
+     */
+    protected function get_olddir_from_hash($contenthash) {
+        return $this->settings->oldfiledir . DIRECTORY_SEPARATOR . $this->get_contentdir_from_hash($contenthash);
+    }
+
+    /**
+     * Get the full path for the specified hash, including the path to the filedir.
+     *
+     * @param string $contenthash The content hash
+     * @param bool $fetchifnotfound Whether to attempt to fetch from the remote path if not found.
+     * @return string The full path to the content file
+     */
+    protected function get_local_path_from_hash($contenthash, $fetchifnotfound = false) {
+        $path = parent::get_local_path_from_hash($contenthash, $fetchifnotfound);
+
+        // Try content recovery.
+        if ($fetchifnotfound && !empty($this->settings->oldfiledir) && !is_readable($path)) {
+            // Is it in the old file directory?
+            $oldpath = $this->get_olddir_from_hash($contenthash);
+            if (is_readable($oldpath)) {
+                // Yes it is!
+                $this->add_file_from_path($oldpath, $contenthash);
+
+                // Remove the old file.
+                $prev = ignore_user_abort(true);
+                @unlink($oldpath);
+                ignore_user_abort($prev);
+            }
+        }
+
+        return $path;
+    }
+
+    /**
      * Marks pool file as candidate for deleting.
      *
      * @param string $contenthash
