@@ -34,16 +34,41 @@ class tidy extends \core\task\scheduled_task
     }
 
     public function execute() {
+        global $CFG;
+
         $fs = get_file_storage();
         $filesystem = $fs->get_file_system();
 
-        // TODO - bulk this up a bit.
+        // Generate an array of hashes.
+        $hashes = [];
+        $connected = $filesystem->get_connected_systems();
+        foreach ($connected as $dist) {
+            $db = \local_kent\helpers::get_db($CFG->kent->environment, $system);
+            if (!$db) {
+                throw new file_exception("Invalid connected_file_systems config: {$system} is not a valid MIM system.");
+            }
+
+            $rs = $db->get_recordset('files', null, '', 'id,contenthash');
+            foreach ($rs as $obj) {
+                $hashes[] = $obj->contenthash;
+            }
+            $rs->close();
+
+            $hashes = array_unique($hashes);
+        }
+
+        if (empty($hashes)) {
+            // Something is wrong, bail out.
+            throw new \file_exception('No hashes found.');
+        }
 
         foreach ($filesystem->traverse_directory($from) as $file) {
             [$fullpath, $contenthash] = $file;
 
             // Check this file is needed.
-            $filesystem->execute_task_trash($contenthash);
+            if (!in_array($contenthash, $hashes)) {
+                $filesystem->execute_task_trash($contenthash);
+            }
         }
         return true;
     }
