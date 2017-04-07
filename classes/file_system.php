@@ -86,8 +86,25 @@ class file_system extends \file_system_filedir {
      * @param string $contenthash The content hash
      * @return string The full path to the content directory
      */
-    protected function get_olddir_from_hash($contenthash) {
+    protected function get_olddir_from_hash(string $contenthash): string {
         return $this->settings->oldfiledir . DIRECTORY_SEPARATOR . $this->get_contentdir_from_hash($contenthash);
+    }
+
+    /**
+     * Migrate a file from the old directory.
+     *
+     * @param  string  $oldpath         Path of old file
+     * @param  string  $contenthash     Content hash
+     * @return void
+     */
+    public function migrate(string $oldpath, string $contenthash): void {
+        // Yes it is, pull it over!
+        $this->add_file_from_path($oldpath, $contenthash);
+
+        // Remove the old file.
+        $prev = ignore_user_abort(true);
+        @unlink($oldpath);
+        ignore_user_abort($prev);
     }
 
     /**
@@ -127,7 +144,7 @@ class file_system extends \file_system_filedir {
      *
      * @param string $contenthash
      */
-    public function remove_file($contenthash) : void {
+    public function remove_file($contenthash) {
         if (!$this->is_file_readable_remotely_by_hash($contenthash)) {
             // The file wasn't found in the first place. Just ignore it.
             return;
@@ -152,7 +169,7 @@ class file_system extends \file_system_filedir {
      *
      * @return bool
      */
-    protected function is_file_removable($contenthash) : bool {
+    protected function is_file_removable($contenthash) {
         global $CFG;
 
         foreach ($this->connectedsystems as $system) {
@@ -173,7 +190,7 @@ class file_system extends \file_system_filedir {
     /**
      * When called by the task, this will trash a file.
      */
-    public function execute_task_trash($contenthash) : void {
+    public function execute_task_trash(string $contenthash): void {
         if (!self::is_file_removable($contenthash)) {
             // Don't remove the file - it's still in use.
             return;
@@ -207,6 +224,28 @@ class file_system extends \file_system_filedir {
         $currentperms = octdec(substr(decoct(fileperms($trashfile)), -4));
         if ((int)$this->filepermissions !== $currentperms) {
             chmod($trashfile, $this->filepermissions);
+        }
+    }
+
+    /**
+     * Helper method to safely traverse the file directory without using much memory.
+     *
+     * @param  string $dir The directory to traverse.
+     */
+    public function traverse_directory(string $dir) {
+        $handle = opendir($dir);
+
+        while ($file = readdir($handle)) {
+            if ($file == "." && $file == "..") {
+                continue;
+            }
+
+            $fullpath = "{$dir}/{$file}";
+            if (is_dir($fullpath)) {
+                $this->traverse_directory($fullpath);
+            } else if (strlen($contenthash) !== 40) {
+                yield [$fullpath, $file];
+            }
         }
     }
 }
