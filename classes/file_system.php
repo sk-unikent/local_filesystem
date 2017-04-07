@@ -101,17 +101,21 @@ class file_system extends \file_system_filedir {
         $path = parent::get_local_path_from_hash($contenthash, $fetchifnotfound);
 
         // Try content recovery.
-        if ($fetchifnotfound && !empty($this->settings->oldfiledir) && !is_readable($path)) {
+        if (!empty($this->settings->oldfiledir) && !is_readable($path)) {
             // Is it in the old file directory?
             $oldpath = $this->get_olddir_from_hash($contenthash);
             if (is_readable($oldpath)) {
-                // Yes it is!
-                $this->add_file_from_path($oldpath, $contenthash);
+                if ($fetchifnotfound) {
+                    // Yes it is, pull it over!
+                    $this->add_file_from_path($oldpath, $contenthash);
 
-                // Remove the old file.
-                $prev = ignore_user_abort(true);
-                @unlink($oldpath);
-                ignore_user_abort($prev);
+                    // Remove the old file.
+                    $prev = ignore_user_abort(true);
+                    @unlink($oldpath);
+                    ignore_user_abort($prev);
+                } else {
+                    $path = $oldpath;
+                }
             }
         }
 
