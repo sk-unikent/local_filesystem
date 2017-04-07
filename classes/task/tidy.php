@@ -43,9 +43,9 @@ class tidy extends \core\task\scheduled_task
         $hashes = [];
         $connected = $filesystem->get_connected_systems();
         foreach ($connected as $dist) {
-            $db = \local_kent\helpers::get_db($CFG->kent->environment, $system);
+            $db = \local_kent\helpers::get_db($CFG->kent->environment, $dist);
             if (!$db) {
-                throw new file_exception("Invalid connected_file_systems config: {$system} is not a valid MIM system.");
+                throw new file_exception("Invalid connected_file_systems config: {$dist} is not a valid MIM system.");
             }
 
             $rs = $db->get_recordset('files', null, '', 'id,contenthash');
@@ -67,6 +67,7 @@ class tidy extends \core\task\scheduled_task
 
             // Check this file is needed.
             if (!in_array($contenthash, $hashes)) {
+                cli_writeln("Trashing file {$fullpath}...");
                 $filesystem->execute_task_trash($contenthash);
             }
         }
