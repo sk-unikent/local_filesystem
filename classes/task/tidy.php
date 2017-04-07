@@ -62,7 +62,7 @@ class tidy extends \core\task\scheduled_task
             throw new \file_exception('No hashes found.');
         }
 
-        foreach ($filesystem->traverse_directory($from) as $file) {
+        foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
             [$fullpath, $contenthash] = $file;
 
             // Check this file is needed.

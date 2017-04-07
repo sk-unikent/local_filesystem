@@ -252,14 +252,14 @@ class file_system extends \file_system_filedir {
         $handle = opendir($dir);
 
         while ($file = readdir($handle)) {
-            if ($file == "." && $file == "..") {
+            if ($file == "." || $file == ".." || $file == "warning.txt" || $file == "config.db") {
                 continue;
             }
 
             $fullpath = "{$dir}/{$file}";
             if (is_dir($fullpath)) {
                 yield from $this->traverse_directory($fullpath);
-            } else if (strlen($contenthash) !== 40) {
+            } else if (strlen($file) !== 40) {
                 yield [$fullpath, $file];
             }
         }

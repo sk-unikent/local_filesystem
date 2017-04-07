@@ -30,7 +30,7 @@ require_once($CFG->libdir . '/clilib.php');
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
-foreach ($filesystem->traverse_directory($from) as $file) {
+foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
     [$fullpath, $contenthash] = $file;
 
     $filehash = sha1_file($fullpath);
@@ -38,3 +38,5 @@ foreach ($filesystem->traverse_directory($from) as $file) {
         cli_writeln("Error verifying {$fullpath}: Mis-matched hash ({$filehash} on disk vs {$contenthash})");
     }
 }
+
+cli_writeln("Verification complete!");
