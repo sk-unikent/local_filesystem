@@ -258,7 +258,7 @@ class file_system extends \file_system_filedir {
             $fullpath = "{$dir}/{$file}";
             if (is_dir($fullpath)) {
                 yield from $this->traverse_directory($fullpath);
-            } else if (strlen($file) !== 40) {
+            } else if (strlen($file) === 40) {
                 yield [$fullpath, $file];
             }
         }

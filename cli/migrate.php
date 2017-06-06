@@ -46,6 +46,8 @@ if (empty($from) || $from == $CFG->filedir) {
     die;
 }
 
+cli_writeln("Migrating from {$from} to {$CFG->filedir}");
+
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
@@ -55,5 +57,6 @@ $filesystem = $fs->get_file_system();
 foreach ($filesystem->traverse_directory($from) as $file) {
     [$fullpath, $contenthash] = $file;
 
+    cli_writeln("Migrating {$contenthash}");
     $filesystem->migrate($fullpath, $contenthash);
 }
