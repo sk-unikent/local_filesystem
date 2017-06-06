@@ -130,6 +130,7 @@ class file_system extends \file_system_filedir {
         if (!empty($this->settings->oldfiledir) && !is_readable($path)) {
             // Is it in the old file directory?
             $oldpath = $this->get_olddir_from_hash($contenthash);
+
             if (is_readable($oldpath)) {
                 if ($fetchifnotfound) {
                     // Yes it is, pull it over!
@@ -140,7 +141,7 @@ class file_system extends \file_system_filedir {
                     @unlink($oldpath);
                     ignore_user_abort($prev);
                 } else {
-                    $path = $oldpath;
+                    $path = "{$oldpath}/{$contenthash}";
                 }
             }
         }
