@@ -107,12 +107,15 @@ class file_system extends \file_system_filedir {
      * @return void
      */
     public function migrate(string $oldpath, string $contenthash): void {
-        // Yes it is, pull it over!
+        $prev = ignore_user_abort(true);
+
+        // Pull it over!
         $this->add_file_from_path($oldpath, $contenthash);
 
         // Remove the old file.
-        $prev = ignore_user_abort(true);
         @unlink($oldpath);
+
+        // Reset.
         ignore_user_abort($prev);
     }
 
@@ -134,12 +137,7 @@ class file_system extends \file_system_filedir {
             if (is_readable($oldpath)) {
                 if ($fetchifnotfound) {
                     // Yes it is, pull it over!
-                    $this->add_file_from_path($oldpath, $contenthash);
-
-                    // Remove the old file.
-                    $prev = ignore_user_abort(true);
-                    @unlink($oldpath);
-                    ignore_user_abort($prev);
+                    $this->migrate($oldpath, $contenthash);
                 } else {
                     $path = "{$oldpath}/{$contenthash}";
                 }
