@@ -45,7 +45,7 @@ class tidy extends \core\task\scheduled_task
         foreach ($connected as $dist) {
             $db = \local_kent\helpers::get_db($CFG->kent->environment, $dist);
             if (!$db) {
-                throw new file_exception("Invalid connected_file_systems config: {$dist} is not a valid MIM system.");
+                throw new \moodle_exception("Invalid connected_file_systems config: {$dist} is not a valid MIM system.");
             }
 
             $rs = $db->get_recordset('files', null, '', 'id,contenthash');
