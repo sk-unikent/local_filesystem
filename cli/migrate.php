@@ -54,9 +54,19 @@ $filesystem = $fs->get_file_system();
 // Begin the migration!
 // Any requests will be redirected to the old filedirectory anyway, and some of them will be copied inline.
 // We will pre-empt the rest.
+$saved = 0;
 foreach ($filesystem->traverse_directory($from) as $file) {
     [$fullpath, $contenthash] = $file;
 
     cli_writeln("Migrating {$contenthash}");
-    $filesystem->migrate($fullpath, $contenthash);
+    [$contenthash, $filesize, $newfile] = $filesystem->migrate($fullpath, $contenthash);
+    if (!$newfile) {
+        $saved += $filesize;
+    }
 }
+
+// Convert and read out.
+$sz = 'BKMGTP';
+$factor = floor((strlen($saved) - 1) / 3);
+$savedhr = sprintf("%.2f", $saved / pow(1024, $factor)) . @$sz[$factor];
+cli_writeln("Migration complete, de-duplication saved {$savedhr} disk space.");

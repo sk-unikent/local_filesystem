@@ -104,19 +104,21 @@ class file_system extends \file_system_filedir {
      *
      * @param  string  $oldpath         Path of old file
      * @param  string  $contenthash     Content hash
-     * @return void
+     * @return array
      */
-    public function migrate(string $oldpath, string $contenthash): void {
+    public function migrate(string $oldpath, string $contenthash): array {
         $prev = ignore_user_abort(true);
 
         // Pull it over!
-        $this->add_file_from_path($oldpath, $contenthash);
+        [$contenthash, $filesize, $newfile] = $this->add_file_from_path($oldpath, $contenthash);
 
         // Remove the old file.
         @unlink($oldpath);
 
         // Reset.
         ignore_user_abort($prev);
+
+        return [$contenthash, $filesize, $newfile];
     }
 
     /**
