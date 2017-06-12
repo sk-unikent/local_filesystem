@@ -43,6 +43,9 @@ class tidy extends \core\task\scheduled_task
 
         $fs = get_file_storage();
         $filesystem = $fs->get_file_system();
+        if (!($filesystem instanceof \local_filesystem\file_system)) {
+            return true;
+        }
 
         // Generate an array of hashes.
         $hashes = [];
