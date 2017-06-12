@@ -36,6 +36,11 @@ class tidy extends \core\task\scheduled_task
     public function execute() {
         global $CFG;
 
+        $config = (object)get_config('local_filesystem');
+        if (!isset($config->tidyfs) || !$config->tidyfs) {
+            return true;
+        }
+
         $fs = get_file_storage();
         $filesystem = $fs->get_file_system();
 

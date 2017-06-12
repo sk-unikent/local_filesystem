@@ -25,5 +25,5 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_filesystem';
-$plugin->version   = 2017060500;
+$plugin->version   = 2017061200;
 $plugin->requires  = 2017051500;

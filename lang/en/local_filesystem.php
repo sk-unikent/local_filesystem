@@ -26,3 +26,4 @@ $string['pluginname'] = 'Kent Filesystem';
 $string['plugindesc'] = 'New and improved filesystem for Kent Moodle.';
 $string['setting_uniqid'] = 'Unique identifier for this system';
 $string['setting_oldfiledir'] = 'Old file directory, only specify this if we are migrating from an old non-shared file store.';
+$string['setting_tidyfs'] = 'Support FS tidy task';

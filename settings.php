@@ -35,4 +35,11 @@ if ($hassiteconfig) {
         'moodle',
         PARAM_ALPHANUM
     ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'local_filesystem/tidyfs',
+        get_string('setting_tidyfs', 'local_filesystem'),
+        '',
+        '0'
+    ));
 }
