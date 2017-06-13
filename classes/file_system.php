@@ -40,16 +40,23 @@ class file_system extends \file_system_filedir {
     /**
      * An object of plugin settings.
      *
-     * @param  \stdClass $contenthash See above.
+     * @param \stdClass $contenthash See above.
      */
     protected $settings = [];
 
     /**
      * An array containing all systems that are connected to the same file system as this installation.
      *
-     * @param  array $contenthash See above.
+     * @param array $contenthash See above.
      */
     protected $connectedsystems = [];
+
+    /**
+     * Hack for migrations.
+     *
+     * @param bool $migrating Bit of a hack.
+     */
+    private $migrating = false;
 
     /**
      * Perform any custom setup for this type of file_system.
@@ -102,18 +109,20 @@ class file_system extends \file_system_filedir {
     /**
      * Migrate a file from the old directory.
      *
-     * @param  string  $oldpath         Path of old file
+     * @param  string  $pathname         Path of old file
      * @param  string  $contenthash     Content hash
      * @return array
      */
-    public function migrate(string $oldpath, string $contenthash): array {
+    public function migrate(string $pathname, string $contenthash): array {
         $prev = ignore_user_abort(true);
 
         // Pull it over!
-        [$contenthash, $filesize, $newfile] = $this->add_file_from_path($oldpath, $contenthash);
+        $this->migrating = true;
+        [$contenthash, $filesize, $newfile] = $this->add_file_from_path($pathname, $contenthash);
+        $this->migrating = false;
 
         // Remove the old file.
-        @unlink($oldpath);
+        @unlink($pathname);
 
         // Reset.
         ignore_user_abort($prev);
@@ -131,8 +140,8 @@ class file_system extends \file_system_filedir {
     protected function get_local_path_from_hash($contenthash, $fetchifnotfound = false) {
         $path = parent::get_local_path_from_hash($contenthash, $fetchifnotfound);
 
-        // Try content recovery.
-        if (!empty($this->settings->oldfiledir) && !is_readable($path)) {
+        // Try content recovery as long as we are not migrating.
+        if (!$this->migrating && !empty($this->settings->oldfiledir) && !is_readable($path)) {
             // Is it in the old file directory?
             $oldpath = $this->get_olddir_from_hash($contenthash);
 
