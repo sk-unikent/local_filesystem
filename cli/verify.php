@@ -27,9 +27,24 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
+cli_writeln("Verifying file system integrity...");
+
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
+// Check files exist.
+$rs = $db->get_recordset('files', null, '', 'id,contenthash');
+foreach ($rs as $obj) {
+    $l1 = $obj->contenthash[0] . $obj->contenthash[1];
+    $l2 = $obj->contenthash[2] . $obj->contenthash[3];
+    $path = "{$CFG->filedir}/{$l1}/{$l2}/{$obj->contenthash}";
+    if (!file_exists($path)) {
+        cli_writeln("{$path}: file not found!");
+    }
+}
+$rs->close();
+
+// Check sha1 sums.
 foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
     [$fullpath, $contenthash] = $file;
 
