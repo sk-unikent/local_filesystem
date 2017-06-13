@@ -58,9 +58,10 @@ $saved = 0;
 foreach ($filesystem->traverse_directory($from) as $file) {
     [$fullpath, $contenthash] = $file;
 
-    cli_writeln("Migrating {$contenthash}");
     [$contenthash, $filesize, $newfile] = $filesystem->migrate($fullpath, $contenthash);
-    if (!$newfile) {
+    if ($newfile) {
+        cli_writeln("Migrated {$contenthash}");
+    } else {
         $saved += $filesize;
     }
 }
