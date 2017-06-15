@@ -34,6 +34,8 @@ cli_writeln("Verifying file system integrity...");
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
+cli_writeln("  > Checking for missing files...");
+
 // Check files exist.
 $rs = $DB->get_recordset('files', null, '', 'id,contenthash');
 foreach ($rs as $obj) {
@@ -46,6 +48,9 @@ foreach ($rs as $obj) {
 }
 $rs->close();
 
+cli_writeln("  > Missing file check complete.");
+cli_writeln("  > Checking file integrity...");
+
 // Check sha1 sums.
 foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
     [$fullpath, $contenthash] = $file;
@@ -56,4 +61,5 @@ foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
     }
 }
 
+cli_writeln("  > File integrity check complete.");
 cli_writeln("Verification complete!");

@@ -47,6 +47,8 @@ class tidy extends \core\task\scheduled_task
             return true;
         }
 
+        raise_memory_limit(MEMORY_UNLIMITED);
+
         // Generate an array of hashes.
         $hashes = [];
         $connected = $filesystem->get_connected_systems();
