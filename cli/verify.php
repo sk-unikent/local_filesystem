@@ -27,6 +27,8 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 
+raise_memory_limit(MEMORY_UNLIMITED);
+
 cli_writeln("Verifying file system integrity...");
 
 $fs = get_file_storage();
