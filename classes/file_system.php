@@ -52,13 +52,6 @@ class file_system extends \file_system_filedir {
     protected $connectedsystems = [];
 
     /**
-     * Hack for migrations.
-     *
-     * @param bool $migrating Bit of a hack.
-     */
-    private $migrating = false;
-
-    /**
      * Perform any custom setup for this type of file_system.
      */
     public function __construct() {
@@ -96,17 +89,6 @@ class file_system extends \file_system_filedir {
     }
 
     /**
-     * Get the old directory to the stored file, including the path to the
-     * filedir, and the directory which the file is actually in.
-     *
-     * @param string $contenthash The content hash
-     * @return string The full path to the content directory
-     */
-    protected function get_olddir_from_hash(string $contenthash): string {
-        return $this->settings->oldfiledir . DIRECTORY_SEPARATOR . $this->get_contentdir_from_hash($contenthash);
-    }
-
-    /**
      * Migrate a file from the old directory.
      *
      * @param  string  $pathname         Path of old file
@@ -117,9 +99,7 @@ class file_system extends \file_system_filedir {
         $prev = ignore_user_abort(true);
 
         // Pull it over!
-        $this->migrating = true;
         [$contenthash, $filesize, $newfile] = $this->add_file_from_path($pathname, $contenthash);
-        $this->migrating = false;
 
         // Remove the old file.
         @unlink($pathname);
@@ -128,34 +108,6 @@ class file_system extends \file_system_filedir {
         ignore_user_abort($prev);
 
         return [$contenthash, $filesize, $newfile];
-    }
-
-    /**
-     * Get the full path for the specified hash, including the path to the filedir.
-     *
-     * @param string $contenthash The content hash
-     * @param bool $fetchifnotfound Whether to attempt to fetch from the remote path if not found.
-     * @return string The full path to the content file
-     */
-    protected function get_local_path_from_hash($contenthash, $fetchifnotfound = false) {
-        $path = parent::get_local_path_from_hash($contenthash, $fetchifnotfound);
-
-        // Try content recovery as long as we are not migrating.
-        if (!$this->migrating && !empty($this->settings->oldfiledir) && !is_readable($path)) {
-            // Is it in the old file directory?
-            $oldpath = $this->get_olddir_from_hash($contenthash);
-
-            if (is_readable($oldpath)) {
-                if ($fetchifnotfound) {
-                    // Yes it is, pull it over!
-                    $this->migrate($oldpath, $contenthash);
-                } else {
-                    $path = "{$oldpath}/{$contenthash}";
-                }
-            }
-        }
-
-        return $path;
     }
 
     /**
