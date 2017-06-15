@@ -33,7 +33,7 @@ $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
 // Check files exist.
-$rs = $db->get_recordset('files', null, '', 'id,contenthash');
+$rs = $DB->get_recordset('files', null, '', 'id,contenthash');
 foreach ($rs as $obj) {
     $l1 = $obj->contenthash[0] . $obj->contenthash[1];
     $l2 = $obj->contenthash[2] . $obj->contenthash[3];
