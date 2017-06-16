@@ -34,32 +34,24 @@ cli_writeln("Verifying file system integrity...");
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
 
-cli_writeln("  > Checking for missing files...");
-
 // Check files exist.
 $rs = $DB->get_recordset('files', null, '', 'id,contenthash');
 foreach ($rs as $obj) {
+    // Check the file exists.
     $l1 = $obj->contenthash[0] . $obj->contenthash[1];
     $l2 = $obj->contenthash[2] . $obj->contenthash[3];
     $path = "{$CFG->filedir}/{$l1}/{$l2}/{$obj->contenthash}";
     if (!file_exists($path)) {
         cli_writeln("{$path}: file not found!");
+        continue;
+    }
+
+    // Check the hash matches too.
+    $filehash = sha1_file($path);
+    if ($filehash != $obj->contenthash) {
+        cli_writeln("Error verifying {$path}: Mis-matched hash ({$filehash} on disk vs {$obj->contenthash})");
     }
 }
 $rs->close();
 
-cli_writeln("  > Missing file check complete.");
-cli_writeln("  > Checking file integrity...");
-
-// Check sha1 sums.
-foreach ($filesystem->traverse_directory($CFG->filedir) as $file) {
-    [$fullpath, $contenthash] = $file;
-
-    $filehash = sha1_file($fullpath);
-    if ($filehash != $contenthash) {
-        cli_writeln("Error verifying {$fullpath}: Mis-matched hash ({$filehash} on disk vs {$contenthash})");
-    }
-}
-
-cli_writeln("  > File integrity check complete.");
 cli_writeln("Verification complete!");
