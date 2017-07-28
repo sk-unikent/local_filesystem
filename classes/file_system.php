@@ -153,7 +153,8 @@ class file_system extends \file_system_filedir {
         foreach ($filesystem->connectedsystems as $system) {
             $db = \local_kent\helpers::get_db($CFG->kent->environment, $system);
             if (!$db) {
-                throw new file_exception("Invalid connected_file_systems config: {$system} is not a valid MIM system.");
+                debugging("Invalid connected_file_systems config: {$system} is not a valid MIM system.");
+                continue;
             }
 
             // Check the file records.
