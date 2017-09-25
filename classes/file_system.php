@@ -61,21 +61,22 @@ class file_system extends \file_system_filedir {
         $this->connectedsystems = [$this->settings->uniqid];
 
         // Grab the config for this filedir and update if needs be.
-        if (!file_exists("{$this->filedir}/config.db")) {
+        $contents = @file_get_contents("{$this->filedir}/config.db");
+        if ($contents === false) {
             // Create a brand new config file.
-            $config = ['version' => 1.0, 'systems' => $this->connectedsystems];
-            file_put_contents("{$this->filedir}/config.db", serialize($config));
-        } else {
-            // Grab a copy of the connected systems.
-            $contents = file_get_contents("{$this->filedir}/config.db");
-            $config = unserialize($contents);
-            $this->connectedsystems = $config['systems'];
+            $contents = ['version' => 1.0, 'systems' => $this->connectedsystems];
+            $contents = serialize($contents);
+            file_put_contents("{$this->filedir}/config.db", $contents);
+        }
 
-            // Add us to the conected systems variable if we are not in it.
-            if (!in_array($this->settings->uniqid, $this->connectedsystems)) {
-                $config['systems'][] = $this->settings->uniqid;
-                file_put_contents("{$this->filedir}/config.db", serialize($config));
-            }
+        // Grab a copy of the connected systems.
+        $config = unserialize($contents);
+        $this->connectedsystems = $config['systems'];
+
+        // Add us to the conected systems variable if we are not in it.
+        if (!in_array($this->settings->uniqid, $this->connectedsystems)) {
+            $config['systems'][] = $this->settings->uniqid;
+            file_put_contents("{$this->filedir}/config.db", serialize($config));
         }
     }
 
