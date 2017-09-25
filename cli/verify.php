@@ -33,25 +33,6 @@ cli_writeln("Verifying file system integrity...");
 
 $fs = get_file_storage();
 $filesystem = $fs->get_file_system();
-
-// Check files exist.
-$rs = $DB->get_recordset('files', null, '', 'id,contenthash');
-foreach ($rs as $obj) {
-    // Check the file exists.
-    $l1 = $obj->contenthash[0] . $obj->contenthash[1];
-    $l2 = $obj->contenthash[2] . $obj->contenthash[3];
-    $path = "{$CFG->filedir}/{$l1}/{$l2}/{$obj->contenthash}";
-    if (!file_exists($path)) {
-        cli_writeln("{$path}: file not found!");
-        continue;
-    }
-
-    // Check the hash matches too.
-    $filehash = sha1_file($path);
-    if ($filehash != $obj->contenthash) {
-        cli_writeln("Error verifying {$path}: Mis-matched hash ({$filehash} on disk vs {$obj->contenthash})");
-    }
-}
-$rs->close();
+$filesystem->verify_integrity();
 
 cli_writeln("Verification complete!");

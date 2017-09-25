@@ -227,4 +227,48 @@ class file_system extends \file_system_filedir {
             }
         }
     }
+
+    /**
+     * Run full-db verification of the filesystem.
+     */
+    public function verify_integrity() {
+        global $DB;
+
+        $rs = $DB->get_recordset('files', null, '', 'id,contenthash,filesize');
+        foreach ($rs as $obj) {
+            // Check the file exists.
+            $path = $this->get_local_path_from_hash($obj->contenthash);
+            if (!file_exists($path)) {
+                cli_writeln("{$path}: file not found!", STDERR);
+                continue;
+            }
+
+            // Use core system method if we can (3.4+).
+            if (method_exists($this, 'validate_hash_and_file_size')) {
+                try {
+                    list($contenthash, $filesize) = $this->validate_hash_and_file_size($obj->contenthash, $path);
+
+                    if ($contenthash !== $obj->contenthash) {
+                        throw new \file_exception("Content hash for file {$obj->id} does not match disk!");
+                    }
+
+                    if ($filesize !== $obj->filesize) {
+                        throw new \file_exception("File size for file {$obj->id} does not match disk!");
+                    }
+                } catch (\file_exception $e) {
+                    cli_writeln($e->getMessage(), STDERR);
+                }
+
+                continue;
+            }
+
+            // Check the hash matches.
+            $filehash = sha1_file($path);
+            if ($filehash != $obj->contenthash) {
+                cli_writeln("Error verifying {$path}: Mis-matched hash ({$filehash} on disk vs {$obj->contenthash})", STDERR);
+            }
+        }
+
+        $rs->close();
+    }
 }
